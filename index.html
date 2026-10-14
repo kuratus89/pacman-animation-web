@@ -1,10 +1,117 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            background: #000;
+            cursor: crosshair;
+        }
+    </style>
 </head>
+
 <body>
+    <canvas id="c" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("c");
+        const ctx = canvas.getContext("2d");
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
+
+        function getMousePos(canvas, event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+        let mouse = {
+            x: 150,
+            y: 150
+        };
+        let isMouseOnPage = true;
+
+        window.addEventListener("mousemove", (e) => {
+            const pos = getMousePos(canvas, e);
+            mouse.x = pos.x;
+            mouse.y = pos.y;
+        });
+        document.addEventListener("mouseleave", () => {
+            isMouseOnPage = false;
+        });
+
+        document.addEventListener("mouseenter", () => {
+            isMouseOnPage = true;
+        });
+
+        function drawPacman(x, y, r, angle, mouthAngle) {
+            const startAngle = (angle * Math.PI) / 180 + (mouthAngle * Math.PI) / 180 / 2;
+            const endAngle = (angle * Math.PI) / 180 + (2 * Math.PI - (mouthAngle * Math.PI) / 180 / 2);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.arc(x, y, r, startAngle, endAngle, 0);
+            ctx.closePath();
+
+            ctx.fillStyle = "yellow";
+            ctx.fill();
+        }
+
+        let x = 150;
+        let y = 150;
+        let radius = 50;
+        let mouthAngle = 0;
+        let mouthSpeed = 4;
+        let mouthMax = 120;
+        let moveSpeed = 2;
+        let facingAngle = 0;
+
+
+        function move() {
+            if (!isMouseOnPage) return;
+
+            const dx = mouse.x - x;
+            const dy = mouse.y - y;
+            const hypo = Math.sqrt((dx * dx) + (dy * dy));
+            if (hypo < 2) return;
+            facingAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+            const step = Math.min(moveSpeed, hypo);
+            x += (dx / hypo) * step;
+            y += (dy / hypo) * step;
+
+
+
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if ((mouthAngle + mouthSpeed >= mouthMax) || (mouthAngle + mouthSpeed <= 0)) mouthSpeed = -mouthSpeed;
+            mouthAngle += mouthSpeed;
+            move()
+            drawPacman(x, y, radius, facingAngle, mouthAngle);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
 </body>
+
 </html>
